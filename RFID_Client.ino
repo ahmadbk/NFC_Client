@@ -32,17 +32,14 @@ String NetworkName = "MWEB_348B11";
 String NetworkPassword = "7765B600A3";
 
 //Client Server Details
-String Host = "192.168.1.86";
-int Port = 7123;
+String Host = "192.168.1.66";
+int Port = 6950;
 
 WiFiClient client;
 
 //Setup Loop
 void setup()
 {
-	//pinMode(SS_PIN, OUTPUT);
-	//pinMode(RST_PIN, OUTPUT);
-
 	Serial.begin(BAUD);
 
 	SPI.begin();
@@ -54,8 +51,6 @@ void setup()
 	}
 
 	Connect_to_WiFi();
-	Connect_as_Client();
-	Send_New_Data_to_Server();
 	Serial.println("Done Setup");
 
 }
@@ -66,13 +61,14 @@ void loop()
 	// Look for new cards, and select one if present
 	if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
 		delay(50);
-		Serial.println("Not Working");
 		return;
 	}
-	Serial.println("Working");
 
+	Connect_as_Client();
 	Serial.print(F("Card UID:"));
-	dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+	int tag = 0;
+	tag = dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+	Send_New_Data_to_Server(tag);
 	Serial.println();
 }
 
@@ -143,22 +139,56 @@ void Connect_as_Client(void)
 }
 
 //Send Data to Server
-void Send_New_Data_to_Server(void)
+void Send_New_Data_to_Server(int tagNum)
 {
 
 	Serial.println("Frame of Data to Send: ");
-	String data = "Hello from the other side!";
-	Serial.print(data);
+	String ReaderID = "1";
+	String tag = String(tagNum);
+	Serial.print(ReaderID+":"+tag+"#");
 
 	Serial.println("");
-	client.println(data);
+	client.println(ReaderID + ":" + tag + "#");
 
 }
 
 // Helper routine to dump a byte array as hex values to Serial
-void dump_byte_array(byte *buffer, byte bufferSize) {
-	for (byte i = 0; i < bufferSize; i++) {
-		Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-		Serial.print(buffer[i], HEX);
-	}
+int dump_byte_array(byte *buffer, byte bufferSize) {
+	int value = 0;
+	//for (byte i = 0; i < bufferSize; i++) {
+		//value += ((buffer[0] & 0xFF) | (buffer[1] & 0xFF) | (buffer[2] & 0xFF) | (buffer[3] & 0xFF)) ;
+		//value1 += ((buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | (buffer[0]));
+		//Serial.print(buffer[i] < 0x10 ? " 0" : " ");
+		//Serial.print(buffer[i], HEX);
+	//}
+	value += (buffer[0]) * 4;
+	Serial.print(value);
+	Serial.println("");
+
+	return value;
 }
+
+//-Pointer to all bytes received is returned
+byte* receive_Data_From_Server(int &no_of_bytes_received)
+{
+	//int Received_New_Data = 0;		//No New Data Yet
+	int size = 0;
+	byte *ptr_Bytes_of_Data_In = NULL;
+
+	while (client.available())			//While there is New Data Retreive it
+	{
+		size++;
+		ptr_Bytes_of_Data_In = (byte*)realloc(ptr_Bytes_of_Data_In, size * sizeof(byte)); //grow array
+
+		byte data_byte = client.read();					//read a byte
+		ptr_Bytes_of_Data_In[size - 1] = data_byte;		//assign to byte array
+		no_of_bytes_received = size;					//New Data Has been Retreived
+	}
+	if (no_of_bytes_received) {
+		Serial.println("");
+		Serial.print("No. of Bytes Received: ");
+		Serial.println(no_of_bytes_received);
+	}
+
+	return ptr_Bytes_of_Data_In;
+} //END receive_Data_From_Server
