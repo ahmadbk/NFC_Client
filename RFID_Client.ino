@@ -69,7 +69,17 @@ void loop()
 	int tag = 0;
 	tag = dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
 	Send_New_Data_to_Server(tag);
+	byte *data;
+	int dataLen = 0;
+	data = receive_Data_From_Server(dataLen);
+	String resp;
+	for (int i = 0; i < 2; i++)
+	{
+		resp += (char)data[i];
+	}
 	Serial.println();
+	Serial.println(resp);
+	delay(5000);
 }
 
 //Attempt Connection to WiFi --> Attemps 20 times
@@ -145,10 +155,10 @@ void Send_New_Data_to_Server(int tagNum)
 	Serial.println("Frame of Data to Send: ");
 	String ReaderID = "1";
 	String tag = String(tagNum);
-	Serial.print(ReaderID+":"+tag+"#");
+	Serial.print(ReaderID+"|"+tag+"#");
 
 	Serial.println("");
-	client.println(ReaderID + ":" + tag + "#");
+	client.println(ReaderID + "|" + tag + "#");
 
 }
 
