@@ -16,6 +16,7 @@ Author:	Ahmad
 #include "ESP8266WiFiAP.h"
 #include "ESP8266WiFi.h"
 #include <SPI\SPI.h>		//include the SPI bus library
+#include "String.h"
 #include "MFRC522.h"	//include the RFID reader library
 
 #define SS_PIN 2    //slave select pin
@@ -28,11 +29,20 @@ MFRC522::MIFARE_Key key;//create a MIFARE_Key struct named 'key', which will hol
 #define BAUD 115200
 
 //Network Details
-String NetworkName = "MWEB_348B11";
-String NetworkPassword = "7765B600A3";
+//String NetworkName = "MWEB_348B11";
+//String NetworkPassword = "7765B600A3";
+
+//String NetworkName = "iPhone";
+//String NetworkPassword = "ahmadkhalid";
+
+//String NetworkName = "TP-LINK_AAE9";
+//String NetworkPassword = "imranparuk";
+
+String NetworkName = "Home WiFi";
+String NetworkPassword = "0828292775";
 
 //Client Server Details
-String Host = "192.168.1.66";
+String Host = "192.168.88.19";
 int Port = 6950;
 
 WiFiClient client;
@@ -41,6 +51,10 @@ WiFiClient client;
 void setup()
 {
 	Serial.begin(BAUD);
+
+	pinMode(16,OUTPUT);
+	digitalWrite(16, LOW);
+
 
 	SPI.begin();
 
@@ -77,8 +91,15 @@ void loop()
 	{
 		resp += (char)data[i];
 	}
+
 	Serial.println();
 	Serial.println(resp);
+	if (resp.equals("11"))
+	{
+		digitalWrite(16, HIGH);
+		delay(5000);
+		digitalWrite(16, LOW);
+	}
 	delay(5000);
 }
 
