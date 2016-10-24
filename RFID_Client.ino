@@ -18,6 +18,7 @@ Author:	Ahmad
 #include <SPI\SPI.h>		//include the SPI bus library
 #include "String.h"
 #include "MFRC522.h"	//include the RFID reader library
+#include "WiFiUdp.h"
 
 #define SS_PIN 2    //slave select pin
 #define RST_PIN 4  //reset pin
@@ -29,8 +30,8 @@ MFRC522::MIFARE_Key key;//create a MIFARE_Key struct named 'key', which will hol
 #define BAUD 115200
 
 //Network Details
-//String NetworkName = "MWEB_348B11";
-//String NetworkPassword = "7765B600A3";
+String NetworkName = "MWEB_348B11";
+String NetworkPassword = "7765B600A3";
 
 //String NetworkName = "iPhone";
 //String NetworkPassword = "ahmadkhalid";
@@ -38,12 +39,12 @@ MFRC522::MIFARE_Key key;//create a MIFARE_Key struct named 'key', which will hol
 //String NetworkName = "TP-LINK_AAE9";
 //String NetworkPassword = "imranparuk";
 
-String NetworkName = "Home WiFi";
-String NetworkPassword = "0828292775";
+//String NetworkName = "Home WiFi";
+//String NetworkPassword = "0828292775";
 
 //Client Server Details
-String Host = "192.168.88.19";
-int Port = 6950;
+String Host = "";
+int Port = 0;
 
 WiFiClient client;
 
@@ -65,6 +66,7 @@ void setup()
 	}
 
 	Connect_to_WiFi();
+	receive_server_addr();
 	Serial.println("Done Setup");
 
 }
@@ -223,3 +225,29 @@ byte* receive_Data_From_Server(int &no_of_bytes_received)
 
 	return ptr_Bytes_of_Data_In;
 } //END receive_Data_From_Server
+
+int receive_server_addr()
+{
+	WiFiUDP Udp;
+	unsigned int localUdpPort = 23;
+	char incomingPacket[255];
+
+	Udp.begin(localUdpPort);
+	Serial.println("LISTENING.......");
+	bool conn = true;
+
+	while (conn)
+	{
+		int packetSize = Udp.parsePacket();
+		if (packetSize)
+		{
+			Serial.println(packetSize + " " + (Udp.remoteIP().toString()) + " " + Udp.remotePort());
+			int len = Udp.read(incomingPacket, 255);
+			Serial.println(incomingPacket);
+			Host = Udp.remoteIP().toString();
+			Port = atoi(incomingPacket);
+			conn = false;
+		}
+	}
+	Udp.stop();
+} 
