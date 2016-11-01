@@ -30,8 +30,8 @@ MFRC522::MIFARE_Key key;//create a MIFARE_Key struct named 'key', which will hol
 #define BAUD 115200
 
 //Network Details
-String NetworkName = "MWEB_348B11";
-String NetworkPassword = "7765B600A3";
+//String NetworkName = "MWEB_348B11";
+//String NetworkPassword = "7765B600A3";
 
 //String NetworkName = "iPhone";
 //String NetworkPassword = "ahmadkhalid";
@@ -39,10 +39,12 @@ String NetworkPassword = "7765B600A3";
 //String NetworkName = "TP-LINK_AAE9";
 //String NetworkPassword = "imranparuk";
 
-//String NetworkName = "Home WiFi";
-//String NetworkPassword = "0828292775";
+String NetworkName = "Home WiFi";
+String NetworkPassword = "0828292775";
 
 //Client Server Details
+//String Host = "192.168.88.37";
+//int Port = 6950;
 String Host = "";
 int Port = 0;
 
@@ -52,6 +54,7 @@ WiFiClient client;
 void setup()
 {
 	Serial.begin(BAUD);
+	Serial.println("Starting Setup");
 
 	pinMode(16,OUTPUT);
 	digitalWrite(16, LOW);
@@ -66,7 +69,9 @@ void setup()
 	}
 
 	Connect_to_WiFi();
+	delay(1000);
 	receive_server_addr();
+	//Connect_to_WiFi();
 	Serial.println("Done Setup");
 
 }
@@ -99,10 +104,10 @@ void loop()
 	if (resp.equals("11"))
 	{
 		digitalWrite(16, HIGH);
-		delay(5000);
+		delay(3000);
 		digitalWrite(16, LOW);
 	}
-	delay(5000);
+	delay(1000);
 }
 
 //Attempt Connection to WiFi --> Attemps 20 times
@@ -134,7 +139,7 @@ void Connect_to_WiFi(void)
 		{
 			Serial.print("Network: ");
 			Serial.print(NetworkName);
-			Serial.print(" not available. Unable to Connect!");
+			Serial.print("Network not available!!! Unable to Connect!");
 			return;
 		}
 	}
@@ -241,7 +246,7 @@ int receive_server_addr()
 		int packetSize = Udp.parsePacket();
 		if (packetSize)
 		{
-			Serial.println(packetSize + " " + (Udp.remoteIP().toString()) + " " + Udp.remotePort());
+			Serial.println((Udp.remoteIP().toString()) + " " + Udp.remotePort());
 			int len = Udp.read(incomingPacket, 255);
 			Serial.println(incomingPacket);
 			Host = Udp.remoteIP().toString();
