@@ -39,14 +39,17 @@ MFRC522::MIFARE_Key key;//create a MIFARE_Key struct named 'key', which will hol
 //String NetworkName = "TP-LINK_AAE9";
 //String NetworkPassword = "imranparuk";
 
-String NetworkName = "Home WiFi";
-String NetworkPassword = "0828292775";
+//String NetworkName = "Home WiFi";
+//String NetworkPassword = "0828292775";
+
+String NetworkName = "B683-F6F0";
+String NetworkPassword = "Sal1naz2";
 
 //Client Server Details
 //String Host = "192.168.88.37";
 //int Port = 6950;
-String Host = "";
-int Port = 0;
+String Host = "192.168.1.101";
+int Port = 50000;
 
 WiFiClient client;
 
@@ -70,7 +73,7 @@ void setup()
 
 	Connect_to_WiFi();
 	delay(1000);
-	receive_server_addr();
+	//receive_server_addr();
 	//Connect_to_WiFi();
 	Serial.println("Done Setup");
 
@@ -89,25 +92,26 @@ void loop()
 	Serial.print(F("Card UID:"));
 	int tag = 0;
 	tag = dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-	Send_New_Data_to_Server(tag);
-	byte *data;
-	int dataLen = 0;
-	data = receive_Data_From_Server(dataLen);
-	String resp;
-	for (int i = 0; i < 2; i++)
-	{
-		resp += (char)data[i];
-	}
+	
+		Send_New_Data_to_Server(tag);
+		byte *data;
+		int dataLen = 0;
+		data = receive_Data_From_Server(dataLen);
+		String resp;
+		for (int i = 0; i < 2; i++)
+		{
+			resp += (char)data[i];
+		}
 
-	Serial.println();
-	Serial.println(resp);
-	if (resp.equals("11"))
-	{
-		digitalWrite(16, HIGH);
-		delay(3000);
-		digitalWrite(16, LOW);
-	}
-	delay(1000);
+		Serial.println();
+		Serial.println(resp);
+		if (resp.equals("11"))
+		{
+			digitalWrite(16, HIGH);
+			delay(1000);
+			digitalWrite(16, LOW);
+		}
+		delay(1000);
 }
 
 //Attempt Connection to WiFi --> Attemps 20 times
@@ -181,7 +185,7 @@ void Send_New_Data_to_Server(int tagNum)
 {
 
 	Serial.println("Frame of Data to Send: ");
-	String ReaderID = "1";
+	String ReaderID = "2";
 	String tag = String(tagNum);
 	Serial.print(ReaderID+"|"+tag+"#");
 
