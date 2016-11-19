@@ -14,11 +14,15 @@ Author:	Ahmad
 #include "ESP8266WiFiMulti.h"
 #include "ESP8266WiFiGeneric.h"
 #include "ESP8266WiFiAP.h"
+#include "ESP8266HTTPClient.h"
 #include "ESP8266WiFi.h"
 #include <SPI\SPI.h>		//include the SPI bus library
 #include "String.h"
 #include "MFRC522.h"	//include the RFID reader library
 #include "WiFiUdp.h"
+
+#define READER "1"  //reader ID
+#define HOST_ID "100" //last byte of the ip address
 
 #define SS_PIN 2    //slave select pin
 #define RST_PIN 4  //reset pin
@@ -74,7 +78,6 @@ void setup()
 	Connect_to_WiFi();
 	delay(1000);
 	//receive_server_addr();
-	//Connect_to_WiFi();
 	Serial.println("Done Setup");
 
 }
@@ -88,30 +91,53 @@ void loop()
 		return;
 	}
 
-	Connect_as_Client();
+	//Connect_as_Client();
 	Serial.print(F("Card UID:"));
 	int tag = 0;
 	tag = dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-	
-		Send_New_Data_to_Server(tag);
-		byte *data;
-		int dataLen = 0;
-		data = receive_Data_From_Server(dataLen);
-		String resp;
-		for (int i = 0; i < 2; i++)
-		{
-			resp += (char)data[i];
-		}
 
-		Serial.println();
-		Serial.println(resp);
-		if (resp.equals("11"))
-		{
-			digitalWrite(16, HIGH);
-			delay(1000);
-			digitalWrite(16, LOW);
-		}
+	String resp = sendRequest(tag);
+	
+	//Send_New_Data_to_Server(tag);
+	//byte *data;
+	//int dataLen = 0;
+	//data = receive_Data_From_Server(dataLen);
+	//String resp;
+	//for (int i = 0; i < 2; i++)
+	//{
+	//	resp += (char)data[i];
+	//}
+
+	Serial.println();
+	if (resp.equals("success"))
+	{
+		digitalWrite(16, HIGH);
 		delay(1000);
+		digitalWrite(16, LOW);
+	}
+	delay(1000);
+
+}
+
+String sendRequest(int tagNum)
+{
+	String readerID = READER;
+	String textToSend = "tag_id="; 
+	textToSend += tagNum;
+	textToSend += "&reader_id=" + readerID;
+	Serial.println(textToSend);
+	HTTPClient http;
+	String addr = "http://192.168.1.";
+	addr += HOST_ID;
+	addr += ":54000/AddLocation.php";
+	Serial.println(addr);
+	http.begin(addr);
+	http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+	http.POST(textToSend);
+	String payload = http.getString();
+	Serial.println(payload);
+	http.end();
+	return payload;
 }
 
 //Attempt Connection to WiFi --> Attemps 20 times
